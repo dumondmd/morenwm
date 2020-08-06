@@ -32,8 +32,8 @@
                      <div class="form-group col-md-2">
                         <select id="inputSexo" class="form-control" v-model="aluno.sexo_selected">
                           <option disabled value="">Sexo</option>  
-                          <option>Masculino</option>
-                          <option>Feminino</option>
+                          <option value="masculino">Masculino</option>
+                          <option value="feminino">Feminino</option>
                         </select>                                               
                      </div>
                   </div>
@@ -53,7 +53,7 @@
 
                       <select id="inputIdioma" class="form-control" v-model="aluno.idioma_selected">
                           <option value="pt-BR">Portugês (pt-BR)</option>
-                          <option value="pt-BR">English (en-US)</option>
+                          <option value="en-US">English (en-US)</option>
                         </select>                 
                      </div>
                   </div>
@@ -118,14 +118,25 @@
                      </div>
                   </div>
                   
-                <div class="row float-right">
+                <div v-if="getAge(aluno.data_nascimento)>=12" class="row float-right">
                   <div class="btn-toolbar" role="toolbar" aria-label="Toolbar with button groups">
-                    <div class="btn-group mr-2" role="group" aria-label="First group">
-                      <button type="button" class="btn btn-secondary" :disabled="aluno.nome == ''" @click="salvarAluno">Salvar</button>
+
+                    <div v-if="aluno.id == null || aluno.id == ''" class="btn-group mr-2" role="group" aria-label="First group">
+                      <button type="button" class="btn btn-secondary" 
+                      :disabled="aluno.nome == ''|| aluno.cpf == '' || aluno.sexo == '' || aluno.data_nascimento == '' || aluno.idioma_selected == ''"
+                      @click="salvarAluno">Salvar</button>
                     </div>
+
+                    <div v-else class="btn-group mr-2" role="group" aria-label="First group">
+                      <button type="button" class="btn btn-secondary" 
+                      :disabled="aluno.nome == ''|| aluno.cpf == '' || aluno.sexo == '' || aluno.data_nascimento == '' || aluno.idioma_selected == ''"
+                      @click="atualizarAluno">Atualizar</button>
+                    </div>
+
                     <div class="btn-group mr-2" role="group" aria-label="Second group">
                       <button type="button" class="btn btn-secondary" @click="limparFormulario">Cancelar</button>
                     </div>
+
                   </div>
                 </div>
 
@@ -147,7 +158,6 @@
          </form>
       </div>
 
-
       <div class="container">
         <div class="row">
           <ul class="nav nav-tabs" id="myTab" role="tablist">
@@ -164,8 +174,6 @@
       </div>
       
 
-
-
       <div class="container">
          <table class="table table-hover">
             <thead>
@@ -173,15 +181,15 @@
                   <th scope="col">Nome</th>
                   <th scope="col">CPF</th>
                   <th scope="col">Idade</th>
-                  <th scope="col">Ações</th>
+                  <th v-show="!showDetados" scope="col">Ações</th>
                </tr>
             </thead>
-            <tbody v-for="aluTab in alunosTable">
+            <tbody v-for="aluTab in list">
                <tr>
                   <td>{{aluTab.nome}}</td> 
                   <td>{{aluTab.cpf}}</td>
                   <td>{{getAge(aluTab.data_nascimento)}}</td>
-                  <td>
+                  <td v-show="!showDetados">
                     <button type="button" class="btn btn-primary btn-sm" @click="editarAluno(aluTab.id)">Editar</button>
                     <button type="button" class="btn btn-secondary btn-sm" data-toggle="modal" @click="excluirAluno(aluTab.id)">Excluir</button>
                   </td>
@@ -189,16 +197,10 @@
             </tbody>
          </table>
       </div>
-      <!-------------------------------------------------Data Table---------------------------------------------->
 
-
-
-
-
-
-      <!------------------------------------------------Area de Modal-------------------------------------------->
+      <!--Area de Modal-->
       <div class="container">
-         <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#modalExcluir">Excluir Aluno</button>
+         
          <!-- Modal -->
          <div class="modal fade" id="modalExcluir" role="dialog">
             <div class="modal-dialog">
@@ -218,7 +220,7 @@
          </div>
       </div>
       <div class="container">
-         <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#modalAtualizar">Atualizar aluno</button>
+         
          <!-- Modal -->
          <div class="modal fade" id="modalAtualizar" role="dialog">
             <div class="modal-dialog">
@@ -238,7 +240,7 @@
          </div>
       </div>
       <div class="container">
-         <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#modalSucesso">Sucesso</button>
+         
          <!-- Modal -->
          <div class="modal fade" id="modalSucesso" role="dialog">
             <div class="modal-dialog">
@@ -265,7 +267,9 @@
   export default {
     data(){
       return {
+        alunoId :[],
         alunosTable :[],
+        showDetados: false,
         busca:"",        
         aluno: {
           id: "",
@@ -298,6 +302,18 @@
       axios.get('./api/aluno/ativos')
         .then(response => this.alunosTable = response.data);
     },
+    computed: {
+      list() {
+        const filter = this.busca;
+        const list = _.orderBy(this.alunosTable, 'nome', 'asc');
+
+        if (_.isEmpty(filter)||(filter.length<3)) {
+          return list;
+        }
+
+        return _.filter(list, aluTab => aluTab.nome.indexOf(filter) >= 0);
+      }
+    },
 
     methods:{            
       limparFormulario(){
@@ -319,7 +335,7 @@
         this.aluno.cidade = ""
         this.aluno.uf_selected = ""
         this.aluno.sexo_selected = ""
-        this.aluno.idioma_selected = ""
+        this.aluno.idioma_selected = navigator.language
         document.querySelector("#data_nascimento").type = 'text'    
       },
       getAge(dateString) {
@@ -335,19 +351,19 @@
       montarTabelaAtivos(){        
         axios.get('./api/aluno/ativos')
         .then(response => this.alunosTable = response.data);
+        this.showDetados = false;
       },
       montarTabelaCancelados(){        
         axios.get('./api/aluno/excluidos')
         .then(response => this.alunosTable = response.data);
+        this.showDetados = true;
       },
       
 
 
       salvarAluno() {
         var self = this;
-        //Validando
-        //Salvando  
-          
+                  
         axios.post('./api/aluno', {            
           nome: this.aluno.nome,
           cpf: this.aluno.cpf,
@@ -378,17 +394,32 @@
           });          
         },
         editarAluno(id){
-          var self = this;
-
-
-
-
-
-
-          alert("editando "+id)
+          var self = this;          
+          axios.get('./api/aluno/'+id)
+          .then(response => self.alunoId = response.data);
+          self.aluno.id = self.alunoId.id
+          self.aluno.nome = self.alunoId.nome
+          self.aluno.cpf = self.alunoId.cpf
+          self.aluno.rg = self.alunoId.rg
+          self.aluno.email = self.alunoId.email
+          self.aluno.telefone = self.alunoId.telefone
+          self.aluno.data_nascimento = self.alunoId.data_nascimento
+          self.aluno.cep = self.alunoId.cep
+          self.aluno.rua = self.alunoId.rua
+          self.aluno.numero = self.alunoId.numero
+          self.aluno.quadra = self.alunoId.quadra
+          self.aluno.lote = self.alunoId.lote
+          self.aluno.complemento = self.alunoId.complemento
+          self.aluno.bairro = self.alunoId.bairro
+          self.aluno.cidade = self.alunoId.cidade
+          self.aluno.uf_selected = self.alunoId.uf_selected
+          self.aluno.sexo_selected = self.alunoId.sexo_selected
+          self.aluno.idioma_selected = self.alunoId.idioma_selected
+          self.aluno.deleted_at = self.alunoId.deleted_at
         },
         excluirAluno(id){
           var self = this;
+          $("#modalExcluir").modal(); 
           axios.delete('./api/aluno/'+id, {
               deleted_at: new Date(),              
             })
@@ -398,20 +429,39 @@
             .catch(function (error) {
               console.log(error);
             });
-
-
-
-          alert("excluindo "+id)
         },
-
-
-
-
-
-
-
-
-
+        atualizarAluno(id){
+          var self = this;
+          $("#modalAtualizar").modal();
+          axios.put('./api/aluno/'+id, {            
+            nome: self.aluno.nome,
+            cpf: self.aluno.cpf,
+            rg: self.aluno.rg,
+            email: self.aluno.email,
+            telefone: self.aluno.telefone,
+            data_nascimento: self.aluno.data_nascimento,
+            cep: self.aluno.cep,
+            rua: self.aluno.rua,
+            numero: self.aluno.numero,
+            quadra: self.aluno.quadra,
+            lote: self.aluno.lote,
+            complemento: self.aluno.complemento,
+            bairro: self.aluno.bairro,
+            cidade: self.aluno.cidade,
+            uf_selected: self.aluno.uf_selected,
+            sexo_selected: self.aluno.sexo_selected,
+            idioma_selected: self.aluno.idioma_selected          
+          })
+          .then(function (response) {             
+            self.limparFormulario();
+            self.montarTabelaAtivos();
+            $("#modalSucesso").modal();                                   
+            console.log(response);            
+          })
+          .catch(function (error) {
+            console.log(error);
+          });
+        },
     }
   }
 </script>
