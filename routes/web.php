@@ -15,10 +15,15 @@ use Illuminate\Support\Facades\Route;
 
 Auth::routes();
 
-Route::get('/home', 'HomeController@index')->name('home');
+//Route::get('/home', 'HomeController@index')->name('home');
+
+Route::get('/home', function () {
+    return redirect()->route('vue');
+});
+
 
 Route::group(['middleware'=>'auth'], function(){
 	Route::get('/', function () {
     	return view('aluno');
-	});
+	})->name('vue');
 });

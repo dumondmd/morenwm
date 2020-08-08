@@ -30,3 +30,9 @@ Gere os registros do banco de dados para teste
 php artisan db:seed --class=AlunoSeeder
 ```
 
+## Login no sitema
+
+```
+admin@mail.com
+123456
+```

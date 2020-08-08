@@ -1,7 +1,7 @@
 <template>
    <div>
       <div class="container">
-         <h1 class="text-center">Formulário de Cadastro</h1>
+         <h1 id="titulo" class="text-center">Formulário de Cadastro</h1>
          <div class="row justify-content-center">
             <div class="col-md-2">
                
@@ -9,13 +9,7 @@
                  <div class="card">                           
                     <img src="https://images.opencollective.com/vuejs/25a8146/logo/256.png" class="img-thumbnail" alt="Logo" width="200" height="200" style="height: 200px;">                
                  </div>
-                </div>
-
-               <div class="row">
-                <button type="button" class="btn btn-primary btn-sm">
-                 Upload Photo
-                </button>
-              </div>
+                </div>               
             </div>
             <div class="col-md-10">
                <form>
@@ -123,14 +117,14 @@
 
                     <div v-if="aluno.id == null || aluno.id == ''" class="btn-group mr-2" role="group" aria-label="First group">
                       <button type="button" class="btn btn-secondary" 
-                      :disabled="aluno.nome == ''|| aluno.cpf == '' || aluno.sexo == '' || aluno.data_nascimento == '' || aluno.idioma_selected == ''"
+                      :disabled="aluno.nome == ''|| aluno.cpf == '' || aluno.sexo_selected == '' || aluno.data_nascimento == '' || aluno.idioma_selected == ''"
                       @click="salvarAluno">Salvar</button>
                     </div>
 
                     <div v-else class="btn-group mr-2" role="group" aria-label="First group">
                       <button type="button" class="btn btn-secondary" 
-                      :disabled="aluno.nome == ''|| aluno.cpf == '' || aluno.sexo == '' || aluno.data_nascimento == '' || aluno.idioma_selected == ''"
-                      @click="atualizarAluno">Atualizar</button>
+                      :disabled="aluno.nome == ''|| aluno.cpf == '' || aluno.sexo_selected == '' || aluno.data_nascimento == '' || aluno.idioma_selected == ''"
+                      @click="modalAtualizarAluno">Atualizar</button>
                     </div>
 
                     <div class="btn-group mr-2" role="group" aria-label="Second group">
@@ -139,7 +133,12 @@
 
                   </div>
                 </div>
-
+                <div v-show="getAge(aluno.data_nascimento)<12" class="alert alert-danger" role="alert">
+                  Não é permitido o cadastro de alunos com idade menor do que 12 anos!
+                </div>
+                <div v-show="aluno.nome == ''|| aluno.cpf == '' || aluno.sexo_selected == '' || aluno.data_nascimento == '' || aluno.idioma_selected == ''" class="alert alert-primary" role="alert">
+                  Os campos a seguir são obrigatórios: cpf, nome, sexo, data de nascimento, idioma.                  
+                </div>
                   <br>
                   <br>                                          
                </form>
@@ -191,7 +190,7 @@
                   <td>{{getAge(aluTab.data_nascimento)}}</td>
                   <td v-show="!showDetados">
                     <button type="button" class="btn btn-primary btn-sm" @click="editarAluno(aluTab.id)">Editar</button>
-                    <button type="button" class="btn btn-secondary btn-sm" data-toggle="modal" @click="excluirAluno(aluTab.id)">Excluir</button>
+                    <button type="button" class="btn btn-secondary btn-sm" data-toggle="modal" @click="modalExcluirAluno(aluTab.id)">Excluir</button>
                   </td>
                </tr>
             </tbody>
@@ -212,7 +211,7 @@
                      <p>Deseja realmente excluir este aluno ?</p>
                   </div>
                   <div class="modal-footer">
-                     <button type="button" class="btn btn-primary" data-dismiss="modal">Sim</button>
+                     <button type="button" class="btn btn-primary" @click="excluirAluno(alunoIdPExclusao)" data-dismiss="modal">Sim</button>
                      <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>      
                   </div>
                </div>
@@ -232,7 +231,7 @@
                      <p>Deseja realmente atualizar o cadastro do aluno?</p>
                   </div>
                   <div class="modal-footer">
-                     <button type="button" class="btn btn-primary" data-dismiss="modal">Sim</button>
+                     <button type="button" class="btn btn-primary" @click="atualizarAluno(aluno.id)" data-dismiss="modal">Sim</button>
                      <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
                   </div>
                </div>
@@ -266,10 +265,10 @@
 <script>
   export default {
     data(){
-      return {
-        alunoId :[],
+      return {        
         alunosTable :[],
         showDetados: false,
+        alunoIdPExclusao: "",
         busca:"",        
         aluno: {
           id: "",
@@ -352,11 +351,13 @@
         axios.get('./api/aluno/ativos')
         .then(response => this.alunosTable = response.data);
         this.showDetados = false;
+        this.busca = "";
       },
       montarTabelaCancelados(){        
         axios.get('./api/aluno/excluidos')
         .then(response => this.alunosTable = response.data);
         this.showDetados = true;
+        this.busca = "";
       },
       
 
@@ -394,41 +395,53 @@
           });          
         },
         editarAluno(id){
-          var self = this;          
+          var self = this;
           axios.get('./api/aluno/'+id)
-          .then(response => self.alunoId = response.data);
-          self.aluno.id = self.alunoId.id
-          self.aluno.nome = self.alunoId.nome
-          self.aluno.cpf = self.alunoId.cpf
-          self.aluno.rg = self.alunoId.rg
-          self.aluno.email = self.alunoId.email
-          self.aluno.telefone = self.alunoId.telefone
-          self.aluno.data_nascimento = self.alunoId.data_nascimento
-          self.aluno.cep = self.alunoId.cep
-          self.aluno.rua = self.alunoId.rua
-          self.aluno.numero = self.alunoId.numero
-          self.aluno.quadra = self.alunoId.quadra
-          self.aluno.lote = self.alunoId.lote
-          self.aluno.complemento = self.alunoId.complemento
-          self.aluno.bairro = self.alunoId.bairro
-          self.aluno.cidade = self.alunoId.cidade
-          self.aluno.uf_selected = self.alunoId.uf_selected
-          self.aluno.sexo_selected = self.alunoId.sexo_selected
-          self.aluno.idioma_selected = self.alunoId.idioma_selected
-          self.aluno.deleted_at = self.alunoId.deleted_at
+          .then(function(response){
+            window.location.href='#titulo';            
+            self.aluno.id = response.data.id
+            self.aluno.nome = response.data.nome
+            self.aluno.cpf = response.data.cpf
+            self.aluno.rg = response.data.rg
+            self.aluno.email = response.data.email
+            self.aluno.telefone = response.data.telefone
+            self.aluno.data_nascimento = response.data.data_nascimento
+            self.aluno.cep = response.data.cep
+            self.aluno.rua = response.data.rua
+            self.aluno.numero = response.data.numero
+            self.aluno.quadra = response.data.quadra
+            self.aluno.lote = response.data.lote
+            self.aluno.complemento = response.data.complemento
+            self.aluno.bairro = response.data.bairro
+            self.aluno.cidade = response.data.cidade
+            self.aluno.uf_selected = response.data.uf_selected
+            self.aluno.sexo_selected = response.data.sexo_selected
+            self.aluno.idioma_selected = response.data.idioma_selected
+            self.aluno.deleted_at = response.data.deleted_at
+          })
+          .catch(function (error) {
+              console.log(error);
+          }); 
+        },
+        modalExcluirAluno(id){
+          var self = this;
+          self.alunoIdPExclusao = id;          
+          $("#modalExcluir").modal();
         },
         excluirAluno(id){
-          var self = this;
-          $("#modalExcluir").modal(); 
-          axios.delete('./api/aluno/'+id, {
-              deleted_at: new Date(),              
-            })
+          var self = this;                    
+          axios.delete('./api/aluno/'+id)
             .then(function (response) {
-              console.log(response);
+               self.limparFormulario();
+               self.montarTabelaAtivos();              
             })
             .catch(function (error) {
               console.log(error);
             });
+        },
+        modalAtualizarAluno(id){
+          var self = this;                  
+          $("#modalAtualizar").modal();
         },
         atualizarAluno(id){
           var self = this;

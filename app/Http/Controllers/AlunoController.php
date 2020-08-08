@@ -41,11 +41,18 @@ class AlunoController extends Controller
     {
         $aluno = Aluno::findOrFail($id);
         $aluno->update($request->all());
-        return response()->json('Aluno atualizado com sucesso!');
+        return response()->json('Aluno atualizado com sucesso!');        
     }
 
-    
-
-    
-    
+    public function delete($id)
+    {
+        $exclusao = date('Y-m-d H:i:s');                      
+        $aluno = Aluno::findOrFail($id);
+        if(isset($aluno)){
+            $aluno->deleted_at = $exclusao;            
+            $aluno->save();
+            return response()->json("Aluno de id: ".$id." excluido com sucesso! Hora exclusao ".$exclusao);
+        }
+        return response('Aluno não encontrado', 404);
+    }   
 }

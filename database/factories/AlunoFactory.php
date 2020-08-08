@@ -24,7 +24,7 @@ $factory->define(Aluno::class, function (Faker $faker) {
         'rg' => $faker->numberBetween(10000000,99999999),    
         'email' => $faker->unique()->safeEmail,
         'telefone' => $faker->phoneNumber,
-        'data_nascimento' => $faker->dateTimeBetween($startDate = '-30 years', $endDate = 'now', $timezone = null),         
+        'data_nascimento' => $faker->dateTimeBetween($startDate = '-40 years', $endDate = '-12 years', $timezone = null),         
         'cep' => $faker->numberBetween(10,200),
         'rua' => $faker->name,
         'numero' => $faker->numberBetween(0,20),

@@ -21,5 +21,5 @@ Route::get('/aluno/ativos', 'AlunoController@showAtivos')->name("aluno.showAtivo
 Route::get('/aluno/excluidos', 'AlunoController@showExcluidos')->name("aluno.showExcluidos");
 Route::get('/aluno/{id}', 'AlunoController@showId')->name("aluno.showId");
 Route::post('/aluno', 'AlunoController@store')->name("aluno.store");
-Route::delete('/aluno/{id}', 'AlunoController@update')->name("aluno.update");
+Route::delete('/aluno/{id}', 'AlunoController@delete')->name("aluno.delete");
 Route::put('/aluno/{id}', 'AlunoController@update')->name("aluno.update");
